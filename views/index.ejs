@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediFi - Medicine Finder</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Medify</h2>
+    <% if (user) { %>
+  <p class="name">Welcome, <%= user.username %></p>
+  <br>
+  <a href="/logout">Logout</a>
+<% } else { %>
+  <a href="/login">Login</a> | <a href="/signup">Signup</a>
+<% } %>
+<br>
+
+    <button id="toggleMode">Toggle Dark Mode</button>
+    <ul>
+      <li><a href="/?section=home">🏠 Home</a></li>
+      <li><a href="/?section=manual">🔍 Manual Search</a></li>
+      <li><a href="/?section=bot">🤖 Ask Medify</a></li>
+      <li><a href="/?section=flow">🧭 Symptom Flow</a></li>
+
+
+      <% if (user) { %>
+  <li><a href="/history">📜 My History</a></li>
+<% } %>
+
+    </ul>
+
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <% if (section === 'home') { %>
+      <section class="home-dashboard">
+        <h2>Welcome to Medify! 💊</h2>
+        <p>Instant medical insights, drug info, and chatbot assistance — all in one place.</p>
+        <div class="info-cards">
+          <div class="card">🧠 25+ Diseases</div>
+          <div class="card">💬 Smart Medical Bot</div>
+          <div class="card">🔗 Linked with OpenFDA</div>
+        </div>
+      </section>
+
+    <% } else if (section === 'manual') { %>
+      <section class="manual-search">
+        <h2>🔍 Search Drug Info</h2>
+        <form action="/manual" method="POST" class="manual-form">
+          <input type="text" name="query" placeholder="Enter disease or brand name..." required />
+          <button type="submit">Search</button>
+        </form>
+
+        <% if (manualResult) { %>
+          <div class="result-box">
+            <%- manualResult %>
+          </div>
+        <% } %>
+      </section>
+
+    <% } else if (section === 'flow') { %>
+      <section class="chatbot-container">
+        <h2>🧭 Symptom Flow Assistant</h2>
+
+        <% if (!flowStep || flowStep === 1) { %>
+          <form action="/flow-step" method="POST">
+            <label>What's bothering you?</label>
+            <div class="flow-options">
+              <button type="submit" name="category" value="head">🧠 Head</button>
+              <button type="submit" name="category" value="chest">❤️ Chest</button>
+              <button type="submit" name="category" value="stomach">🍽️ Stomach</button>
+              <button type="submit" name="category" value="joints">🦵 Joints</button>
+              <button type="submit" name="category" value="skin">🧴 Skin</button>
+              <button type="submit" name="category" value="eye">👁️ Eye</button>
+              <button type="submit" name="category" value="throat">🗣️ Throat</button>
+              <button type="submit" name="category" value="back">🔙 Back</button>
+              <button type="submit" name="category" value="general">🧍 General</button>
+
+            </div>
+          </form>
+        <% } else if (flowStep === 2) { %>
+          <form action="/flow-diagnose" method="POST">
+            <input type="hidden" name="category" value="<%= category %>">
+            <label>Select specific symptom:</label>
+            <div class="flow-options">
+              <% options.forEach(option => { %>
+                <button type="submit" name="symptom" value="<%= option %>"><%= option %></button>
+              <% }) %>
+            </div>
+          </form>
+        <% } else if (flowStep === 3) { %>
+          <div class="result-box">
+            <h3>Symptom: <%= symptom %></h3>
+            <p><strong>🩺 Likely Condition:</strong> <%= condition %></p>
+            <p><strong>✅ Advice:</strong> <%= advice %></p>
+            <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(condition) %>" target="_blank">🔗 Learn More on MedlinePlus</a>
+          </div>
+        <% } %>
+      </section>
+
+    <% } else { %>
+      <section id="chat-section" class="chatbot-container">
+        <h2>🤖 Ask Medify</h2>
+        <form method="POST" action="/chat" class="chat-form">
+          <input type="text" name="message" placeholder="Describe your symptoms..." required />
+          <button type="submit">Get Advice</button>
+        </form>
+
+        <% if (reply) { %>
+          <div class="chat-reply">
+            <%- reply %>
+          </div>
+        <% } %>
+      </section>
+    <% } %>
+  </main>
+</div>
+
+
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> MediFi. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/script.js"></script>
+</body>
+</html>

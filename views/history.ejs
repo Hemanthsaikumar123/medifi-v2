@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History - Medifi</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Medifi</h2>
+      <button id="toggleMode">Toggle Dark Mode</button>
+      <ul>
+        <li><a href="/">🏠 Home</a></li>
+        <li><a href="/history" class="active">📜 History</a></li>
+        <li><a href="/logout">🚪 Logout</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="history-container glass">
+        <h2 class="section-header">📜 Search History</h2>
+
+        <% if (history && history.length > 0) { %>
+          <ul class="history-list">
+            <% history.forEach(item => { %>
+              <li class="history-card">
+                <p><strong>Source:</strong> <%= item.source %></p>
+                <p><strong>Symptom:</strong> <%= item.symptom %></p>
+                <p><strong>Condition:</strong> <%= item.condition %></p>
+                <p><strong>Date:</strong> <%= new Date(item.created_at).toLocaleDateString() %></p>
+                <form action="/history/delete" method="POST" style="margin-top: 1rem;">
+                  <input type="hidden" name="entryId" value="<%= item.id %>">
+                  <button type="submit" class="btn-delete">Delete</button>
+                </form>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p>No history yet.</p>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  <script src="/js/script.js"></script>
+</body>
+</html>

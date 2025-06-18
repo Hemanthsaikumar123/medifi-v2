@@ -1,0 +1,122 @@
+{
+  "fever,cough,cold": {
+    "condition": "Flu or Common Cold",
+    "advice": "Rest, drink fluids, and consider paracetamol if you are having a mild fever or else consult the doctor.",
+    "keywords": [
+      "fever",
+      "cough",
+      "cold"
+    ]
+  },
+  "headache": {
+    "condition": "Migraine or Dehydration",
+    "advice": "Drink water and rest in a dark room.",
+    "keywords": [
+      "headache"
+    ]
+  },
+  "stomach pain,nausea": {
+    "condition": "Gastroenteritis",
+    "advice": "Avoid solid food, drink ORS.",
+    "keywords": [
+      "stomach pain",
+      "nausea"
+    ]
+  },
+  "chest pain,shortness of breath": {
+    "condition": "Heart Attack",
+    "advice": "Seek immediate emergency medical help.",
+    "keywords": [
+      "chest pain",
+      "shortness of breath"
+    ]
+  },
+  "frequent urination,thirst,blurred vision": {
+    "condition": "Diabetes",
+    "advice": "Get a blood sugar test and consult a doctor.",
+    "keywords": [
+      "frequent urination",
+      "thirst",
+      "blurred vision"
+    ]
+  },
+  "joint pain,stiffness,swelling": {
+    "condition": "Arthritis",
+    "advice": "Consult a rheumatologist and consider anti-inflammatory medication.",
+    "keywords": [
+      "joint pain",
+      "stiffness",
+      "swelling"
+    ]
+  },
+  "weight loss,fatigue,night sweats": {
+    "condition": "Tuberculosis",
+    "advice": "Get a TB test and chest X-ray.",
+    "keywords": [
+      "weight loss",
+      "fatigue",
+      "night sweats"
+    ]
+  },
+  "sore throat,fever,swollen glands": {
+    "condition": "Strep Throat",
+    "advice": "Consult a doctor for a throat swab test.",
+    "keywords": [
+      "sore throat",
+      "fever",
+      "swollen glands"
+    ]
+  },
+  "itchy eyes,sneezing,runny nose": {
+    "condition": "Allergic Rhinitis",
+    "advice": "Avoid allergens and consider antihistamines.",
+    "keywords": [
+      "itchy eyes",
+      "sneezing",
+      "runny nose"
+    ]
+  },
+  "persistent cough,weight loss,blood in sputum": {
+    "condition": "Lung Cancer",
+    "advice": "Consult an oncologist and consider imaging tests.",
+    "keywords": [
+      "persistent cough",
+      "weight loss",
+      "blood in sputum"
+    ]
+  },
+  "rash,itching,redness": {
+    "condition": "Eczema or Dermatitis",
+    "advice": "Apply moisturizer and avoid triggers.",
+    "keywords": [
+      "rash",
+      "itching",
+      "redness"
+    ]
+  },
+  "abdominal pain,bloating,constipation": {
+    "condition": "Irritable Bowel Syndrome",
+    "advice": "Eat fiber-rich food and consult a gastroenterologist.",
+    "keywords": [
+      "abdominal pain",
+      "bloating",
+      "constipation"
+    ]
+  },
+  "burning urination,lower abdominal pain": {
+    "condition": "Urinary Tract Infection",
+    "advice": "Drink water and consult a doctor for antibiotics.",
+    "keywords": [
+      "burning urination",
+      "lower abdominal pain"
+    ]
+  },
+  "difficulty breathing,blue lips": {
+    "condition": "Severe Asthma Attack",
+    "advice": "Use inhaler and seek emergency care.",
+    "keywords": [
+      "difficulty breathing",
+      "blue lips"
+    ]
+  }
+}

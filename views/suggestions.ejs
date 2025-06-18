@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Suggestions for "<%= condition %>" | MediFi</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>MediFi</h1>
+    <p>Medicine suggestions for: "<%= condition %>"</p>
+    <a href="/">← Back to Home</a>
+  </header>
+
+  <main class="results">
+    <% if (results && results.length > 0) { %>
+      <% results.forEach(med => { %>
+        <div class="card">
+          <h2><%= med.openfda.brand_name ? med.openfda.brand_name[0] : 'Unknown' %></h2>
+          <p><strong>Generic:</strong> <%= med.openfda.generic_name ? med.openfda.generic_name[0] : 'N/A' %></p>
+          <p><strong>Indications:</strong> <%= med.indications_and_usage ? med.indications_and_usage[0] : 'N/A' %></p>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <h2><%= error || "No results found." %></h2>
+    <% } %>
+  </main>
+
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> MediFi</p>
+  </footer>
+</body>
+</html>

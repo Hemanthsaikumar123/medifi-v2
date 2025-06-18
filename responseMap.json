@@ -1,0 +1,102 @@
+{
+  "Headache": {
+    "condition": "Migraine or Dehydration",
+    "advice": "Drink water, rest in a dark room, and avoid screens."
+  },
+  "Dizziness": {
+    "condition": "Low Blood Pressure or Vertigo",
+    "advice": "Sit or lie down immediately. Drink water and avoid sudden movements."
+  },
+  "Blurred Vision": {
+    "condition": "Eye Strain or Migraine",
+    "advice": "Take breaks from screens and rest your eyes."
+  },
+  "Chest Pain": {
+    "condition": "Angina or Heart-related Issue",
+    "advice": "Seek immediate medical attention if persistent or severe."
+  },
+  "Shortness of Breath": {
+    "condition": "Asthma or Lung Infection",
+    "advice": "Use prescribed inhaler or consult a doctor immediately."
+  },
+  "Nausea": {
+    "condition": "Gastroenteritis or Food Poisoning",
+    "advice": "Avoid solid food, drink ORS, and rest."
+  },
+  "Abdominal Pain": {
+    "condition": "Indigestion or Gastritis",
+    "advice": "Avoid spicy foods, eat light meals, and drink warm water."
+  },
+  "Diarrhea": {
+    "condition": "Stomach Infection",
+    "advice": "Stay hydrated with ORS and avoid oily foods."
+  },
+  "Joint Pain": {
+    "condition": "Arthritis or Muscle Strain",
+    "advice": "Apply ice, rest, and take over-the-counter pain relievers if needed."
+  },
+  "Swelling": {
+    "condition": "Inflammation or Injury",
+    "advice": "Apply a cold compress and keep the area elevated."
+  },
+  "Stiffness": {
+    "condition": "Arthritis or Lack of Movement",
+    "advice": "Do gentle stretches and stay active."
+  },
+  "Rash": {
+    "condition": "Allergic Reaction or Eczema",
+    "advice": "Apply moisturizer, avoid allergens, and keep skin clean."
+  },
+  "Itching": {
+    "condition": "Skin Allergy or Dry Skin",
+    "advice": "Use anti-itch lotion or hydrocortisone cream."
+  },
+  "Red Spots": {
+    "condition": "Skin Irritation or Viral Rash",
+    "advice": "Avoid scratching and consult a dermatologist if persistent."
+  },
+  "Redness": {
+    "condition": "Conjunctivitis or Eye Irritation",
+    "advice": "Use prescribed eye drops and avoid touching eyes."
+  },
+  "Dry Eyes": {
+    "condition": "Screen Strain or Dehydration",
+    "advice": "Use lubricating eye drops and reduce screen time."
+  },
+  "Sore Throat": {
+    "condition": "Viral Infection or Strep Throat",
+    "advice": "Gargle with salt water and drink warm fluids."
+  },
+  "Difficulty Swallowing": {
+    "condition": "Tonsillitis or Throat Inflammation",
+    "advice": "Eat soft foods and consult a doctor if it worsens."
+  },
+  "Voice Loss": {
+    "condition": "Laryngitis or Throat Overuse",
+    "advice": "Rest your voice and stay hydrated."
+  },
+  "Lower Back Pain": {
+    "condition": "Muscle Strain or Slip Disc",
+    "advice": "Apply heat, rest, and avoid heavy lifting."
+  },
+  "Upper Back Pain": {
+    "condition": "Postural Strain",
+    "advice": "Maintain good posture and take breaks while sitting."
+  },
+  "Stiff Back": {
+    "condition": "Poor Posture or Lack of Movement",
+    "advice": "Do back stretches and avoid slouching."
+  },
+  "Fatigue": {
+    "condition": "Anemia or Poor Sleep",
+    "advice": "Get 7-8 hours of sleep and eat iron-rich foods."
+  },
+  "Fever": {
+    "condition": "Viral Infection or Flu",
+    "advice": "Take paracetamol, rest, and drink plenty of fluids."
+  },
+  "Loss of Appetite": {
+    "condition": "Stomach Bug or Stress",
+    "advice": "Eat light meals and stay hydrated."
+  }
+}
