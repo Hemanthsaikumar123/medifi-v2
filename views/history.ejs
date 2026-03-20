@@ -3,48 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>History - Medifi</title>
+  <title>History — Medify</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h2>Medifi</h2>
-      <button id="toggleMode">Toggle Dark Mode</button>
+
+<div class="layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">💊</div>
+      <h2>Medify</h2>
+    </div>
+
+    <nav class="sidebar-nav">
       <ul>
-        <li><a href="/">🏠 Home</a></li>
-        <li><a href="/history" class="active">📜 History</a></li>
-        <li><a href="/logout">🚪 Logout</a></li>
+        <li><a href="/"><span class="nav-icon">🏠</span> Home</a></li>
+        <li><a href="/history" class="active"><span class="nav-icon">📜</span> My History</a></li>
       </ul>
-    </aside>
+    </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <div class="history-container glass">
-        <h2 class="section-header">📜 Search History</h2>
+    <div class="sidebar-auth-links">
+      <a href="/logout"><span class="nav-icon">🚪</span> Logout</a>
+    </div>
 
+    <div class="sidebar-footer">
+      <button id="toggleMode">🌙 &nbsp;Dark mode</button>
+    </div>
+
+  </aside>
+
+  <!-- ── Main Content ──────────────────────────────────────── -->
+  <main class="main-content">
+    <div class="history-container">
+
+      <div class="page-header">
+        <h2>Search History</h2>
         <% if (history && history.length > 0) { %>
-          <ul class="history-list">
-            <% history.forEach(item => { %>
-              <li class="history-card">
-                <p><strong>Source:</strong> <%= item.source %></p>
-                <p><strong>Symptom:</strong> <%= item.symptom %></p>
-                <p><strong>Condition:</strong> <%= item.condition %></p>
-                <p><strong>Date:</strong> <%= new Date(item.created_at).toLocaleDateString() %></p>
-                <form action="/history/delete" method="POST" style="margin-top: 1rem;">
-                  <input type="hidden" name="entryId" value="<%= item.id %>">
-                  <button type="submit" class="btn-delete">Delete</button>
-                </form>
-              </li>
-            <% }) %>
-          </ul>
+          <p><%= history.length %> saved <%= history.length === 1 ? 'entry' : 'entries' %></p>
         <% } else { %>
-          <p>No history yet.</p>
+          <p>No searches saved yet.</p>
         <% } %>
       </div>
-    </main>
-  </div>
-  <script src="/js/script.js"></script>
+
+      <% if (history && history.length > 0) { %>
+        <ul class="history-list">
+          <% history.forEach(item => { %>
+            <li class="history-card">
+
+              <div class="history-icon">
+                <% if (item.source === 'bot') { %>🤖
+                <% } else if (item.source === 'flow') { %>🧭
+                <% } else { %>🔍<% } %>
+              </div>
+
+              <div class="history-info">
+                <div class="history-symptom"><%= item.symptom %></div>
+                <div class="history-condition"><%= item.condition %></div>
+                <div class="history-meta">
+                  <span class="history-badge">
+                    <% if (item.source === 'bot') { %>Ask Medify
+                    <% } else if (item.source === 'flow') { %>Symptom Flow
+                    <% } else { %>Manual Search<% } %>
+                  </span>
+                  <span class="history-date"><%= new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                </div>
+              </div>
+
+              <form action="/history/delete" method="POST">
+                <input type="hidden" name="entryId" value="<%= item.id %>">
+                <button type="submit" class="btn-delete">Remove</button>
+              </form>
+
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <div class="empty-state">
+          <span>📋</span>
+          Your search history will appear here.
+        </div>
+      <% } %>
+
+    </div>
+  </main>
+</div>
+
+<footer>
+  <p>&copy; <%= new Date().getFullYear() %> Medify. Not a substitute for professional medical advice.</p>
+</footer>
+
+<script src="/js/script.js"></script>
 </body>
 </html>

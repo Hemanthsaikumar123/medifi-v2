@@ -2,33 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Results for "<%= query %>" | MediFi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results for "<%= query %>" — Medify</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+
   <header>
-    <h1>MediFi</h1>
-    <p>Search Results for "<%= query %>"</p>
-    <a href="/" style="color:white;">← Back to Search</a>
+    <div>
+      <h1>Medify</h1>
+      <p>Results for "<%= query %>"</p>
+    </div>
+    <a href="/">← Back to Search</a>
   </header>
 
   <main class="results">
+
     <% if (error) { %>
-      <h2><%= error %></h2>
+      <div class="card">
+        <p style="color:var(--text-secondary)"><%= error %></p>
+      </div>
     <% } else { %>
       <div class="card">
-        <h2><%= medicine.openfda.brand_name ? medicine.openfda.brand_name[0] : 'Unknown' %></h2>
-        <p><strong>Generic Name:</strong> <%= medicine.openfda.generic_name ? medicine.openfda.generic_name[0] : 'N/A' %></p>
-        <p><strong>Purpose:</strong> <%= medicine.purpose ? medicine.purpose[0] : 'N/A' %></p>
-        <p><strong>Indications:</strong> <%= medicine.indications_and_usage ? medicine.indications_and_usage[0] : 'N/A' %></p>
-        <p><strong>Warnings:</strong> <%= medicine.warnings ? medicine.warnings[0] : 'N/A' %></p>
-        <p><strong>Dosage:</strong> <%= medicine.dosage_and_administration ? medicine.dosage_and_administration[0] : 'N/A' %></p>
+        <h2><%= medicine.openfda.brand_name ? medicine.openfda.brand_name[0] : 'Unknown Brand' %></h2>
+        <p>
+          <strong>Generic name</strong>
+          <%= medicine.openfda.generic_name ? medicine.openfda.generic_name[0] : 'N/A' %>
+        </p>
+        <p>
+          <strong>Purpose</strong>
+          <%= medicine.purpose ? medicine.purpose[0] : 'N/A' %>
+        </p>
+        <p>
+          <strong>Indications</strong>
+          <%= medicine.indications_and_usage ? medicine.indications_and_usage[0] : 'N/A' %>
+        </p>
+        <p>
+          <strong>Warnings</strong>
+          <%= medicine.warnings ? medicine.warnings[0] : 'N/A' %>
+        </p>
+        <p>
+          <strong>Dosage</strong>
+          <%= medicine.dosage_and_administration ? medicine.dosage_and_administration[0] : 'N/A' %>
+        </p>
       </div>
     <% } %>
+
   </main>
 
-  <footer>
-    <p>&copy; <%= new Date().getFullYear() %> MediFi. All rights reserved.</p>
+  <footer style="position:static;border-top:1px solid var(--border);padding:14px 24px;color:var(--text-tertiary);font-size:12px;text-align:center;">
+    &copy; <%= new Date().getFullYear() %> Medify. Not a substitute for professional medical advice.
   </footer>
+
+  <script src="/js/script.js"></script>
 </body>
 </html>

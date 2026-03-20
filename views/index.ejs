@@ -3,63 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MediFi - Medicine Finder</title>
+  <title>Medify — Medicine Finder</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
 
-
 <div class="layout">
-  <!-- Sidebar -->
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
   <aside class="sidebar">
-    <h2>Medify</h2>
+
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">💊</div>
+      <h2>Medify</h2>
+    </div>
+
     <% if (user) { %>
-  <p class="name">Welcome, <%= user.username %></p>
-  <br>
-  <a href="/logout">Logout</a>
-<% } else { %>
-  <a href="/login">Login</a> | <a href="/signup">Signup</a>
-<% } %>
-<br>
+      <div class="sidebar-user">
+        <div class="sidebar-user-label">Signed in as</div>
+        <div class="sidebar-user-name"><%= user.username %></div>
+      </div>
+    <% } %>
 
-    <button id="toggleMode">Toggle Dark Mode</button>
-    <ul>
-      <li><a href="/?section=home">🏠 Home</a></li>
-      <li><a href="/?section=manual">🔍 Manual Search</a></li>
-      <li><a href="/?section=bot">🤖 Ask Medify</a></li>
-      <li><a href="/?section=flow">🧭 Symptom Flow</a></li>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="/?section=home"><span class="nav-icon">🏠</span> Home</a></li>
+        <li><a href="/?section=manual"><span class="nav-icon">🔍</span> Manual Search</a></li>
+        <li><a href="/?section=bot"><span class="nav-icon">🤖</span> Ask Medify</a></li>
+        <li><a href="/?section=flow"><span class="nav-icon">🧭</span> Symptom Flow</a></li>
+        <% if (user) { %>
+          <li><a href="/history"><span class="nav-icon">📜</span> My History</a></li>
+        <% } %>
+      </ul>
+    </nav>
 
+    <% if (!user) { %>
+      <div class="sidebar-auth-links">
+        <a href="/login"><span class="nav-icon">🔐</span> Login</a>
+        <a href="/signup"><span class="nav-icon">✏️</span> Sign up</a>
+      </div>
+    <% } else { %>
+      <div class="sidebar-auth-links">
+        <a href="/logout"><span class="nav-icon">🚪</span> Logout</a>
+      </div>
+    <% } %>
 
-      <% if (user) { %>
-  <li><a href="/history">📜 My History</a></li>
-<% } %>
-
-    </ul>
+    <div class="sidebar-footer">
+      <button id="toggleMode">🌙 &nbsp;Dark mode</button>
+    </div>
 
   </aside>
 
-  <!-- Main Content -->
+  <!-- ── Main Content ──────────────────────────────────────── -->
   <main class="main-content">
 
     <% if (section === 'home') { %>
-      <section class="home-dashboard">
-        <h2>Welcome to Medify! 💊</h2>
-        <p>Instant medical insights, drug info, and chatbot assistance — all in one place.</p>
-        <div class="info-cards">
-          <div class="card">🧠 25+ Diseases</div>
-          <div class="card">💬 Smart Medical Bot</div>
-          <div class="card">🔗 Linked with OpenFDA</div>
+      <div class="home-dashboard">
+        <div class="page-header">
+          <h2>Welcome to Medify 💊</h2>
+          <p>Instant drug info, symptom checks, and AI-powered medical guidance.</p>
         </div>
-      </section>
+        <div class="info-cards">
+          <div class="card">
+            <div class="card-label">Diseases covered</div>
+            <div class="card-value">25+</div>
+            <div class="card-desc">Across 9 body areas</div>
+          </div>
+          <div class="card">
+            <div class="card-label">AI assistant</div>
+            <div class="card-value">Smart bot</div>
+            <div class="card-desc">Describe your symptoms naturally</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Data source</div>
+            <div class="card-value">OpenFDA</div>
+            <div class="card-desc">Live official drug database</div>
+          </div>
+        </div>
+        <form action="/manual" method="POST" class="manual-form">
+          <input type="text" name="query" placeholder="Quick search — enter a disease or drug name…" />
+          <button type="submit">Search</button>
+        </form>
+      </div>
 
     <% } else if (section === 'manual') { %>
       <section class="manual-search">
-        <h2>🔍 Search Drug Info</h2>
+        <div class="page-header">
+          <h2>Drug Search</h2>
+          <p>Look up any drug or disease via the OpenFDA database.</p>
+        </div>
         <form action="/manual" method="POST" class="manual-form">
-          <input type="text" name="query" placeholder="Enter disease or brand name..." required />
+          <input type="text" name="query" placeholder="Enter disease or brand name…" required />
           <button type="submit">Search</button>
         </form>
-
         <% if (manualResult) { %>
           <div class="result-box">
             <%- manualResult %>
@@ -69,11 +105,14 @@
 
     <% } else if (section === 'flow') { %>
       <section class="chatbot-container">
-        <h2>🧭 Symptom Flow Assistant</h2>
+        <div class="page-header">
+          <h2>Symptom Flow</h2>
+          <p>Follow the guided flow to identify your condition and get advice.</p>
+        </div>
 
         <% if (!flowStep || flowStep === 1) { %>
           <form action="/flow-step" method="POST">
-            <label>What's bothering you?</label>
+            <label style="font-size:14px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:12px;">Where are your symptoms?</label>
             <div class="flow-options">
               <button type="submit" name="category" value="head">🧠 Head</button>
               <button type="submit" name="category" value="chest">❤️ Chest</button>
@@ -84,37 +123,42 @@
               <button type="submit" name="category" value="throat">🗣️ Throat</button>
               <button type="submit" name="category" value="back">🔙 Back</button>
               <button type="submit" name="category" value="general">🧍 General</button>
-
             </div>
           </form>
+
         <% } else if (flowStep === 2) { %>
           <form action="/flow-diagnose" method="POST">
             <input type="hidden" name="category" value="<%= category %>">
-            <label>Select specific symptom:</label>
+            <label style="font-size:14px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:12px;">Select your specific symptom:</label>
             <div class="flow-options">
               <% options.forEach(option => { %>
                 <button type="submit" name="symptom" value="<%= option %>"><%= option %></button>
               <% }) %>
             </div>
           </form>
+
         <% } else if (flowStep === 3) { %>
           <div class="result-box">
             <h3>Symptom: <%= symptom %></h3>
-            <p><strong>🩺 Likely Condition:</strong> <%= condition %></p>
-            <p><strong>✅ Advice:</strong> <%= advice %></p>
-            <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(condition) %>" target="_blank">🔗 Learn More on MedlinePlus</a>
+            <p><strong>Likely condition:</strong> <%= condition %></p>
+            <p><strong>Advice:</strong> <%= advice %></p>
+            <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(condition) %>" target="_blank">
+              🔗 Learn more on MedlinePlus
+            </a>
           </div>
         <% } %>
       </section>
 
     <% } else { %>
-      <section id="chat-section" class="chatbot-container">
-        <h2>🤖 Ask Medify</h2>
+      <section class="chatbot-container">
+        <div class="page-header">
+          <h2>Ask Medify</h2>
+          <p>Describe your symptoms and get AI-powered guidance.</p>
+        </div>
         <form method="POST" action="/chat" class="chat-form">
-          <input type="text" name="message" placeholder="Describe your symptoms..." required />
-          <button type="submit">Get Advice</button>
+          <input type="text" name="message" placeholder="Describe your symptoms…" required />
+          <button type="submit">Ask</button>
         </form>
-
         <% if (reply) { %>
           <div class="chat-reply">
             <%- reply %>
@@ -122,14 +166,14 @@
         <% } %>
       </section>
     <% } %>
+
   </main>
 </div>
 
+<footer>
+  <p>&copy; <%= new Date().getFullYear() %> Medify. Not a substitute for professional medical advice.</p>
+</footer>
 
-  <footer>
-    <p>&copy; <%= new Date().getFullYear() %> MediFi. All rights reserved.</p>
-  </footer>
-
-  <script src="/js/script.js"></script>
+<script src="/js/script.js"></script>
 </body>
 </html>

@@ -3,29 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - Medifi</title>
+  <title>Sign Up — Medify</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="auth-container glass">
-    <h2 class="section-header">📝 Create Your Medify Account</h2>
-    <form method="POST" action="/signup">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" name="username" required />
+
+  <div class="auth-page-wrapper">
+    <div class="auth-container">
+
+      <div class="auth-brand">
+        <div class="auth-brand-icon">💊</div>
+        <div class="auth-brand-name">Medify</div>
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" required />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" name="password" required />
-      </div>
-      <button class="btn-primary" type="submit">Sign Up</button>
-      <p class="auth-link">Already have an account? <a href="/login">Login</a></p>
-    </form>
+
+      <h2>Create your account</h2>
+      <p class="auth-subtitle">Start finding drug info and symptom guidance.</p>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="flash-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/signup">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="yourname" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password" />
+        </div>
+        <button class="btn-primary" type="submit">Create account</button>
+      </form>
+
+      <p class="auth-link">Already have an account? <a href="/login">Sign in</a></p>
+
+    </div>
   </div>
+
   <script src="/js/script.js"></script>
 </body>
 </html>
