@@ -50,20 +50,38 @@ app.use('/flow-step', apiLimiter);
 app.use('/flow-diagnose', apiLimiter);
 
 
-function matchSymptoms(message) {
-  const cleaned = message.toLowerCase().trim();
-  let bestMatch = null;
-  let maxMatchCount = 0;
-
-  for (const [key, value] of Object.entries(symptomData)) {
-    const matchCount = value.keywords.filter(sym => cleaned.includes(sym.toLowerCase())).length;
-    if (matchCount > 0 && matchCount > maxMatchCount) {
-      maxMatchCount = matchCount;
-      bestMatch = value;
+async function askAI(userMessage) {
+  const response = await axios.post(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      model: 'llama3-8b-8192',
+      max_tokens: 300,
+      messages: [
+        {
+          role: 'system',
+          content: `You are Medify, a helpful medical information assistant.
+          When given symptoms, respond ONLY with valid JSON — no explanation, no markdown.
+          Format: {"condition":"...","advice":"...","urgency":"low|medium|high"}
+          urgency=high means go to hospital immediately.
+          Always end advice with: Consult a doctor for proper diagnosis.`
+        },
+        { role: 'user', content: userMessage }
+      ]
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     }
-  }
-  return bestMatch;
+  );
+
+  const raw = response.data.choices[0].message.content;
+  // Strip markdown code fences if model adds them
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  return JSON.parse(cleaned);
 }
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -122,71 +140,41 @@ app.post('/manual', async (req, res) => {
 
 
 
-app.post('/chat', async (req, res) => {
-  const userMsg = req.body.message;
-  const match = matchSymptoms(userMsg);
+aapp.post('/chat', async (req, res) => {
+  const userMsg = req.body.message?.trim();
+  if (!userMsg) return res.redirect("/?section=bot");
 
-  if (!match) {
-    return res.render('index', { 
-      section: 'bot', 
-      flowStep: 1,
-      reply: "I couldn't understand your symptoms. Please try describing them differently or use the Symptom Flow Assistant.",
-      manualResult: null,
-      category: null,
-      options: [],
-      symptom: null,
-      condition: null,
-      user: req.user,
-      advice: null
-    });
-  }
-  if (req.user) {
-  await pool.query(
-    'INSERT INTO history (user_id, source, symptom, condition, advice) VALUES ($1, $2, $3, $4, $5)',
-    [req.user.id, 'bot', userMsg, match.condition, match.advice]
-  );
-}
-
-
-  const fdaQuery = encodeURIComponent(match.condition.split(' ')[0]);
-  let drugInfo = "No specific medication information found.";
-  
+  let match;
   try {
-    const response = await axios.get(
+    match = await askAI(userMsg);
+  } catch (err) {
+    console.error("AI error:", err.message);
+    match = { condition: 'Unable to process', advice: 'Please consult a doctor.', urgency: 'low' };
+  }
+
+  if (req.user) {
+    await pool.query(
+      'INSERT INTO history (user_id, source, symptom, condition, advice) VALUES ($1,$2,$3,$4,$5)',
+      [req.user.id, 'bot', userMsg, match.condition, match.advice]
+    );
+  }
+
+  // Still fetch OpenFDA for related drug info
+  const fdaQuery = encodeURIComponent(match.condition.split(" ")[0]);
+  let drugInfo = null;
+  try {
+    const fda = await axios.get(
       `https://api.fda.gov/drug/label.json?search=indications_and_usage:${fdaQuery}&limit=1`
     );
-    const result = response.data.results[0];
-    if (result?.indications_and_usage) {
-      drugInfo = result.indications_and_usage[0];
-    }
-  } catch (e) {
-    console.log("OpenFDA Error:", e.message);
-  }
-
-  const reply = `
-    <div class="chat-result">
-      <p><strong>🏥 Possible Condition:</strong> ${match.condition}</p>
-      <p><strong>✅ Medical Advice:</strong> ${match.advice}</p>
-      <p><strong>💊 Related Medication Info:</strong></p>
-      <p>${drugInfo}</p>
-      <p><a href="https://medlineplus.gov/search/?query=${encodeURIComponent(match.condition)}" 
-            target="_blank" class="learn-more">
-        🔗 Learn more about ${match.condition} on MedlinePlus
-      </a></p>
-    </div>
-  `;
+    drugInfo = fda.data.results?.[0]?.indications_and_usage?.[0] || null;
+  } catch (e) {}
 
   res.render('index', {
-    section: 'bot',
-    flowStep: 1,
-    reply,
-    manualResult: null,
-    category: null,
-    options: [],
-    symptom: null,
-    condition: null,
-    user: req.user,
-    advice: null
+    section: 'bot', flowStep: 1,
+    reply: { ...match, drugInfo, query: userMsg },
+    manualResult: null, manualError: null,
+    category: null, options: [], symptom: null,
+    condition: null, user: req.user, advice: null
   });
 });
 

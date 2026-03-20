@@ -148,14 +148,22 @@
           </form>
 
         <% } else if (flowStep === 3) { %>
-          <div class="result-box">
-            <h3>Symptom: <%= symptom %></h3>
-            <p><strong>Likely condition:</strong> <%= condition %></p>
-            <p><strong>Advice:</strong> <%= advice %></p>
-            <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(condition) %>" target="_blank">
-              🔗 Learn more on MedlinePlus
-            </a>
-          </div>
+          <div class='result-box'>
+    <% if (reply.urgency === 'high') { %>
+      <div style='background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 16px;margin-bottom:14px;color:#991B1B;font-weight:600'>
+        ⚠️ This may be a medical emergency — seek immediate care
+      </div>
+    <% } %>
+    <h3><%= reply.condition %></h3>
+    <p><strong>Advice:</strong> <%= reply.advice %></p>
+    <% if (reply.drugInfo) { %>
+      <p><strong>Related drug info:</strong> <%= reply.drugInfo.substring(0, 300) %>...</p>
+    <% } %>
+    <a href='https://medlineplus.gov/search/?query=<%= encodeURIComponent(reply.condition) %>' target='_blank'>
+      Learn more on MedlinePlus
+    </a>
+  </div>
+
         <% } %>
       </section>
 
