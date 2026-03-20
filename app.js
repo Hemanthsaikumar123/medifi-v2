@@ -13,6 +13,8 @@ require('./auth/passport-config')(passport);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const symptomData = JSON.parse(fs.readFileSync('./symptomData.json', 'utf8'));
+const responseMap = JSON.parse(fs.readFileSync('./responseMap.json', 'utf8'));
+
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
@@ -21,7 +23,7 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.use(session({
   store: new pgSession({ pool }),
-  secret: 'medify-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
@@ -207,8 +209,6 @@ const optionMap = {
 
 app.post('/flow-diagnose', (req, res) => {
   const { category, symptom } = req.body;
-
-  const responseMap = JSON.parse(fs.readFileSync('./responseMap.json', 'utf8'));
 
   const result = responseMap[symptom] || {
     condition: "Unknown",

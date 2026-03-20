@@ -4,7 +4,7 @@ const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
   database: 'medify',
-  password: 'dbms2327',
+  password: process.env.DB_PASSWORD, 
   port: 5432
 });
 
