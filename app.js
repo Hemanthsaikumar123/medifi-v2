@@ -41,6 +41,13 @@ app.use(session({
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Ensure template vars exist for all index renders
+app.use((req, res, next) => {
+  res.locals.manualError = null;
+  next();
+});
+
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
 
@@ -54,7 +61,7 @@ async function askAI(userMessage) {
   const response = await axios.post(
     'https://api.groq.com/openai/v1/chat/completions',
     {
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       max_tokens: 300,
       messages: [
         {
@@ -140,7 +147,7 @@ app.post('/manual', async (req, res) => {
 
 
 
-aapp.post('/chat', async (req, res) => {
+app.post('/chat', async (req, res) => {
   const userMsg = req.body.message?.trim();
   if (!userMsg) return res.redirect("/?section=bot");
 
@@ -204,6 +211,10 @@ const optionMap = {
     options,
     reply: null,
     manualResult: null,
+    manualError: null,
+    symptom: null,
+    condition: null,
+    advice: null,
     user: req.user
   });
 });
@@ -227,11 +238,13 @@ app.post('/flow-diagnose', (req, res) => {
     section: 'flow',
     flowStep: 3,
     category,
+    options: [],
     symptom,
     condition: result.condition,
     advice: result.advice,
     reply: null,
     manualResult: null,
+    manualError: null,
     user: req.user
   });
 });
