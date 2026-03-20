@@ -15,6 +15,17 @@ const PORT = process.env.PORT || 3000;
 const symptomData = JSON.parse(fs.readFileSync('./symptomData.json', 'utf8'));
 const responseMap = JSON.parse(fs.readFileSync('./responseMap.json', 'utf8'));
 
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
+
+// Limit: 20 requests per minute per IP on API routes
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: 'Too many requests, please slow down.'
+});
+
+
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,6 +43,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
+
+app.use('/manual', apiLimiter);
+app.use('/chat', apiLimiter);
+app.use('/flow-step', apiLimiter);
+app.use('/flow-diagnose', apiLimiter);
+
 
 function matchSymptoms(message) {
   const cleaned = message.toLowerCase().trim();
