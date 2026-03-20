@@ -97,10 +97,20 @@
           <button type="submit">Search</button>
         </form>
         <% if (manualResult) { %>
-          <div class="result-box">
-            <%- manualResult %>
-          </div>
-        <% } %>
+  <div class='result-box'>
+    <h3><%= manualResult.brand %></h3>
+    <p><strong>Generic:</strong> <%= manualResult.generic %></p>
+    <p><strong>Purpose:</strong> <%= manualResult.purpose %></p>
+    <p><strong>Usage:</strong> <%= manualResult.usage %></p>
+    <p><strong>Dosage:</strong> <%= manualResult.dosage %></p>
+    <p><strong>Warnings:</strong> <%= manualResult.warning %></p>
+  </div>
+<% } else if (manualError) { %>
+  <div class='result-box'>
+    <p><%= manualError %></p>
+  </div>
+<% } %>
+
       </section>
 
     <% } else if (section === 'flow') { %>

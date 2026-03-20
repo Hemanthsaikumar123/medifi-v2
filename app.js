@@ -64,49 +64,45 @@ app.get('/', (req, res) => {
 });
 
 app.post('/manual', async (req, res) => {
-  const query = req.body.query;
-  let manualResult = "Sorry, no useful information found.";
+  const query = req.body.query?.trim();
+  if (!query) return res.redirect('/?section=manual');
+
+  let drugData = null;
+  let errorMsg = null;
 
   try {
-    const response = await axios.get(`https://api.fda.gov/drug/label.json?search=${query}&limit=1`);
+    const response = await axios.get(
+      `https://api.fda.gov/drug/label.json?search=${encodeURIComponent(query)}&limit=1`
+    );
     const result = response.data.results?.[0];
-
     if (result) {
-      const brand = result.openfda.brand_name?.[0] || "N/A";
-      const purpose = result.purpose?.[0] || "N/A";
-      const usage = result.indications_and_usage?.[0] || "N/A";
-      const dosage = result.dosage_and_administration?.[0] || "N/A";
-
-      manualResult = `
-        <h3>💊 Brand: ${brand}</h3>
-        <p><strong>🩺 Purpose:</strong> ${purpose}</p>
-        <p><strong>📋 Usage:</strong> ${usage}</p>
-        <p><strong>📦 Dosage:</strong> ${dosage}</p>
-      `;
+      drugData = {
+        brand:   result.openfda.brand_name?.[0]            || 'Unknown',
+        generic: result.openfda.generic_name?.[0]          || 'N/A',
+        purpose: result.purpose?.[0]                       || 'N/A',
+        usage:   result.indications_and_usage?.[0]         || 'N/A',
+        dosage:  result.dosage_and_administration?.[0]     || 'N/A',
+        warning: result.warnings?.[0]                      || 'N/A',
+      };
+      if (req.user) {
+        await pool.query(
+          'INSERT INTO history (user_id, source, symptom, condition, advice) VALUES ($1,$2,$3,$4,$5)',
+          [req.user.id, 'manual', query, drugData.brand, drugData.purpose]
+        );
+      }
     }
-    if (req.user && manualResult) {
-  await pool.query(
-    'INSERT INTO history (user_id, source, symptom, condition, advice) VALUES ($1, $2, $3, $4, $5)',
-    [req.user.id, 'manual', query, 'From OpenFDA', manualResult]
-  );
-}
-
-  } catch (error) {
-    console.error("OpenFDA error:", error.message);
-    manualResult = "🚫 Failed to fetch drug info. Try another brand or disease name.";
+  } catch (err) {
+    errorMsg = 'No results found. Try a different drug name.';
   }
 
-  res.render('index', { section: 'manual',
-  flowStep: 1,
-  reply: null,
-  manualResult,
-  category: null,
-  options: [],
-  symptom: null,
-  condition: null,
-  user: req.user,
-  advice: null});
+  res.render('index', {
+    section: 'manual', flowStep: 1, reply: null,
+    manualResult: drugData, manualError: errorMsg,
+    category: null, options: [], symptom: null,
+    condition: null, user: req.user, advice: null
+  });
 });
+
 
 
 app.post('/chat', async (req, res) => {
