@@ -97,19 +97,116 @@
           <button type="submit">Search</button>
         </form>
         <% if (manualResult) { %>
-  <div class='result-box'>
-    <h3><%= manualResult.brand %></h3>
-    <p><strong>Generic:</strong> <%= manualResult.generic %></p>
-    <p><strong>Purpose:</strong> <%= manualResult.purpose %></p>
-    <p><strong>Usage:</strong> <%= manualResult.usage %></p>
-    <p><strong>Dosage:</strong> <%= manualResult.dosage %></p>
-    <p><strong>Warnings:</strong> <%= manualResult.warning %></p>
-  </div>
-<% } else if (manualError) { %>
-  <div class='result-box'>
-    <p><%= manualError %></p>
-  </div>
-<% } %>
+          <div class="result-box">
+
+            <%# Source badge %>
+            <% if (manualResult.fromAI) { %>
+              <div style="display:inline-flex;align-items:center;gap:5px;background:var(--brand-light);color:var(--brand);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:14px;">
+                🤖 AI-generated — verify with a pharmacist
+              </div>
+            <% } %>
+
+            <%# Drug name heading %>
+            <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+              <h3 style="font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:3px;"><%= manualResult.brand %></h3>
+              <% if (manualResult.generic && manualResult.generic !== 'N/A' && manualResult.generic !== manualResult.brand) { %>
+                <span style="font-size:13px;color:var(--text-secondary);">Generic: <%= manualResult.generic %></span>
+              <% } %>
+              <% if (manualResult.activeIngredient) { %>
+                <span style="font-size:12px;color:var(--text-tertiary);display:block;margin-top:2px;">Active ingredient: <%= manualResult.activeIngredient %></span>
+              <% } %>
+            </div>
+
+            <%# Info rows %>
+            <% const rows = [
+              { label: 'What it is for', value: manualResult.purpose },
+              { label: 'How it works', value: manualResult.usage },
+              { label: 'Dosage', value: manualResult.dosage },
+              { label: 'Key warnings', value: manualResult.warning },
+            ]; %>
+            <% rows.forEach(function(row) { %>
+              <% if (row.value && row.value !== 'N/A') { %>
+                <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;">
+                  <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);min-width:110px;flex-shrink:0;padding-top:3px;"><%= row.label %></span>
+                  <span style="font-size:14px;color:var(--text-primary);line-height:1.6;"><%= row.value %></span>
+                </div>
+              <% } %>
+            <% }); %>
+
+            <%# MedlinePlus link %>
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+              <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(manualResult.generic !== 'N/A' ? manualResult.generic : manualResult.brand) %>"
+                 target="_blank"
+                 style="color:var(--brand);font-size:13px;font-weight:500;text-decoration:none;">
+                🔗 Full info on MedlinePlus
+              </a>
+            </div>
+          </div>
+
+          <%# Other matches — expandable %>
+          <% if (manualResult.otherMatches && manualResult.otherMatches.length > 0) { %>
+            <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin:20px 0 10px;">Other matches</p>
+            <% manualResult.otherMatches.forEach(function(m, idx) { %>
+              <div class="other-match-card" style="border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:8px;overflow:hidden;">
+
+                <%# Clickable header row %>
+                <button
+                  onclick="toggleMatch(this)"
+                  style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-subtle);border:none;cursor:pointer;text-align:left;gap:12px;">
+                  <div>
+                    <div style="font-size:14px;font-weight:600;color:var(--text-primary);"><%= m.brand %></div>
+                    <% if (m.generic && m.generic !== 'N/A' && m.generic !== m.brand) { %>
+                      <div style="font-size:12px;color:var(--text-secondary);margin-top:1px;">Generic: <%= m.generic %></div>
+                    <% } %>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;"><%= m.purpose %></div>
+                  </div>
+                  <span class="match-chevron" style="font-size:11px;color:var(--text-tertiary);flex-shrink:0;transition:transform 0.2s;">▼</span>
+                </button>
+
+                <%# Full detail panel — hidden by default %>
+                <div class="match-detail" style="display:none;padding:14px 16px;border-top:1px solid var(--border);background:var(--bg-surface);">
+                  <% if (m.activeIngredient) { %>
+                    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;">
+                      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);min-width:110px;flex-shrink:0;padding-top:2px;">Active ingredient</span>
+                      <span style="font-size:13px;color:var(--text-primary);line-height:1.6;"><%= m.activeIngredient %></span>
+                    </div>
+                  <% } %>
+                  <% if (m.usage && m.usage !== 'N/A') { %>
+                    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;">
+                      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);min-width:110px;flex-shrink:0;padding-top:2px;">How it works</span>
+                      <span style="font-size:13px;color:var(--text-primary);line-height:1.6;"><%= m.usage %></span>
+                    </div>
+                  <% } %>
+                  <% if (m.dosage && m.dosage !== 'N/A') { %>
+                    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;">
+                      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);min-width:110px;flex-shrink:0;padding-top:2px;">Dosage</span>
+                      <span style="font-size:13px;color:var(--text-primary);line-height:1.6;"><%= m.dosage %></span>
+                    </div>
+                  <% } %>
+                  <% if (m.warning && m.warning !== 'N/A') { %>
+                    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;">
+                      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);min-width:110px;flex-shrink:0;padding-top:2px;">Key warnings</span>
+                      <span style="font-size:13px;color:var(--text-primary);line-height:1.6;"><%= m.warning %></span>
+                    </div>
+                  <% } %>
+                  <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(m.generic !== 'N/A' ? m.generic : m.brand) %>"
+                     target="_blank"
+                     style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;color:var(--brand);font-size:13px;font-weight:500;text-decoration:none;">
+                    🔗 Full info on MedlinePlus
+                  </a>
+                </div>
+
+              </div>
+            <% }); %>
+          <% } %>
+
+        <% } else if (manualError) { %>
+          <div class="result-box" style="text-align:center;padding:28px;">
+            <div style="font-size:28px;margin-bottom:10px;">🔍</div>
+            <p style="font-weight:600;color:var(--text-primary);margin-bottom:6px;">No results found</p>
+            <p style="font-size:13px;color:var(--text-secondary);"><%= manualError %></p>
+          </div>
+        <% } %>
 
       </section>
 
@@ -148,16 +245,21 @@
           </form>
 
         <% } else if (flowStep === 3) { %>
-          <div class="result-box">
-            <h3 style="margin-bottom:14px;">Symptom: <%= symptom %></h3>
-            <p style="margin-bottom:10px;"><strong>Likely condition:</strong> <%= condition %></p>
-            <p style="margin-bottom:10px;"><strong>Advice:</strong> <%= advice %></p>
-            <a href="https://medlineplus.gov/search/?query=<%= encodeURIComponent(condition) %>"
-               target="_blank"
-               style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;color:var(--brand);font-size:13px;font-weight:500;text-decoration:none;">
-              🔗 Learn more on MedlinePlus
-            </a>
-          </div>
+          <div class='result-box'>
+    <% if (reply.urgency === 'high') { %>
+      <div style='background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px 16px;margin-bottom:14px;color:#991B1B;font-weight:600'>
+        ⚠️ This may be a medical emergency — seek immediate care
+      </div>
+    <% } %>
+    <h3><%= reply.condition %></h3>
+    <p><strong>Advice:</strong> <%= reply.advice %></p>
+    <% if (reply.drugInfo) { %>
+      <p><strong>Related drug info:</strong> <%= reply.drugInfo.substring(0, 300) %>...</p>
+    <% } %>
+    <a href='https://medlineplus.gov/search/?query=<%= encodeURIComponent(reply.condition) %>' target='_blank'>
+      Learn more on MedlinePlus
+    </a>
+  </div>
 
         <% } %>
       </section>

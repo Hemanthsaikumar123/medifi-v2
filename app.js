@@ -105,6 +105,62 @@ app.get('/', (req, res) => {
     advice: null});
 });
 
+// Smart multi-strategy OpenFDA search
+async function fetchFromFDA(query) {
+  const q = encodeURIComponent(query);
+  const strategies = [
+    `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${q}"&limit=3`,
+    `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${q}"&limit=3`,
+    `https://api.fda.gov/drug/label.json?search=openfda.brand_name:${q}*+openfda.generic_name:${q}*&limit=3`,
+    `https://api.fda.gov/drug/label.json?search=${q}&limit=5`,
+  ];
+  for (const url of strategies) {
+    try {
+      const res = await axios.get(url, { timeout: 6000 });
+      const results = res.data.results || [];
+      const good = results.filter(r =>
+        r.openfda?.brand_name?.length || r.openfda?.generic_name?.length
+      );
+      if (good.length > 0) return good;
+    } catch (e) { continue; }
+  }
+  return [];
+}
+
+function cleanText(text, maxLen = 400) {
+  if (!text) return null;
+  const cleaned = text.replace(/\s+/g, ' ').trim();
+  if (cleaned.length <= maxLen) return cleaned;
+  const cut = cleaned.substring(0, maxLen);
+  const lastDot = cut.lastIndexOf('.');
+  return lastDot > 200 ? cut.substring(0, lastDot + 1) + ' ...' : cut + ' ...';
+}
+
+async function summarizeWithAI(brand, rawUsage, rawWarning) {
+  try {
+    const prompt = `Summarize this drug info for a patient in plain English. Be concise.
+Drug: ${brand}
+Usage: ${rawUsage?.substring(0, 600) || 'N/A'}
+Warnings: ${rawWarning?.substring(0, 400) || 'N/A'}
+Respond ONLY in JSON (no markdown):
+{"summary":"2-3 sentence plain English summary","keyWarnings":"1-2 most important warnings in plain English"}`;
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: 'llama-3.1-8b-instant',
+        max_tokens: 200,
+        messages: [
+          { role: 'system', content: 'You are a pharmacist. Respond only in valid JSON, no markdown.' },
+          { role: 'user', content: prompt }
+        ]
+      },
+      { headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` }, timeout: 8000 }
+    );
+    const raw = response.data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
 app.post('/manual', async (req, res) => {
   const query = req.body.query?.trim();
   if (!query) return res.redirect('/?section=manual');
@@ -113,28 +169,84 @@ app.post('/manual', async (req, res) => {
   let errorMsg = null;
 
   try {
-    const response = await axios.get(
-      `https://api.fda.gov/drug/label.json?search=${encodeURIComponent(query)}&limit=1`
-    );
-    const result = response.data.results?.[0];
-    if (result) {
+    const results = await fetchFromFDA(query);
+
+    if (results.length === 0) {
+      // Nothing in OpenFDA — fall back to AI
+      try {
+        const aiResponse = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            model: 'llama-3.1-8b-instant',
+            max_tokens: 350,
+            messages: [
+              { role: 'system', content: 'You are a pharmacist. Respond only in valid JSON, no markdown.' },
+              { role: 'user', content: `Give information about "${query}" as a drug or medical condition. Respond ONLY in JSON: {"brand":"...","generic":"...","purpose":"...","usage":"2-3 sentences in plain English","dosage":"common dosage","warning":"most important warning","source":"AI"} If completely unknown set brand to null.` }
+            ]
+          },
+          { headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` }, timeout: 8000 }
+        );
+        const raw = aiResponse.data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        const aiData = JSON.parse(raw);
+        if (aiData.brand) {
+          drugData = { ...aiData, fromAI: true, otherMatches: [] };
+        } else {
+          errorMsg = `No results found for "${query}". Try a brand name like "Paracetamol" or "Metformin".`;
+        }
+      } catch (aiErr) {
+        errorMsg = `No results found for "${query}". Try a specific brand or generic drug name.`;
+      }
+    } else {
+      const scoreResult = r => (r.purpose ? 2 : 0) + (r.indications_and_usage ? 2 : 0) +
+        (r.dosage_and_administration ? 1 : 0) + (r.warnings ? 1 : 0);
+      const best = results.reduce((a, b) => scoreResult(a) >= scoreResult(b) ? a : b);
+
+      const rawUsage   = best.indications_and_usage?.[0] || null;
+      const rawWarning = best.warnings?.[0] || best.warnings_and_cautions?.[0] || null;
+      const rawDosage  = best.dosage_and_administration?.[0] || null;
+      const brand      = best.openfda?.brand_name?.[0] || best.openfda?.generic_name?.[0] || query;
+
+      // Use AI to clean up long/missing text
+      const needsSummary = !best.purpose || (rawUsage && rawUsage.length > 500);
+      const aiSummary = needsSummary ? await summarizeWithAI(brand, rawUsage, rawWarning) : null;
+
       drugData = {
-        brand:   result.openfda.brand_name?.[0]            || 'Unknown',
-        generic: result.openfda.generic_name?.[0]          || 'N/A',
-        purpose: result.purpose?.[0]                       || 'N/A',
-        usage:   result.indications_and_usage?.[0]         || 'N/A',
-        dosage:  result.dosage_and_administration?.[0]     || 'N/A',
-        warning: result.warnings?.[0]                      || 'N/A',
+        brand,
+        generic:         best.openfda?.generic_name?.[0] || best.openfda?.brand_name?.[0] || 'N/A',
+        purpose:         best.purpose?.[0] || aiSummary?.summary || cleanText(rawUsage, 200) || 'N/A',
+        usage:           aiSummary?.summary || cleanText(rawUsage) || 'N/A',
+        dosage:          cleanText(rawDosage, 300) || 'N/A',
+        warning:         aiSummary?.keyWarnings || cleanText(rawWarning, 300) || 'N/A',
+        activeIngredient: best.active_ingredient?.[0]?.substring(0, 200) || null,
+        fromAI: false,
+        otherMatches: results
+          .filter(r => r !== best)
+          .slice(0, 2)
+          .map(r => {
+            const rRaw  = r.indications_and_usage?.[0] || null;
+            const rWarn = r.warnings?.[0] || r.warnings_and_cautions?.[0] || null;
+            return {
+              brand:           r.openfda?.brand_name?.[0]  || r.openfda?.generic_name?.[0] || 'Unknown',
+              generic:         r.openfda?.generic_name?.[0] || 'N/A',
+              purpose:         r.purpose?.[0]               || cleanText(rRaw, 120)         || 'N/A',
+              usage:           cleanText(rRaw)               || 'N/A',
+              dosage:          cleanText(r.dosage_and_administration?.[0], 300) || 'N/A',
+              warning:         cleanText(rWarn, 300)         || 'N/A',
+              activeIngredient: r.active_ingredient?.[0]?.substring(0, 200) || null,
+            };
+          })
       };
+
       if (req.user) {
         await pool.query(
           'INSERT INTO history (user_id, source, symptom, condition, advice) VALUES ($1,$2,$3,$4,$5)',
-          [req.user.id, 'manual', query, drugData.brand, drugData.purpose]
+          [req.user.id, 'manual', query, drugData.brand, drugData.purpose.substring(0, 200)]
         );
       }
     }
   } catch (err) {
-    errorMsg = 'No results found. Try a different drug name.';
+    console.error('Manual search error:', err.message);
+    errorMsg = 'Something went wrong. Please try again.';
   }
 
   res.render('index', {
@@ -211,10 +323,6 @@ const optionMap = {
     options,
     reply: null,
     manualResult: null,
-    manualError: null,
-    symptom: null,
-    condition: null,
-    advice: null,
     user: req.user
   });
 });
@@ -238,13 +346,11 @@ app.post('/flow-diagnose', (req, res) => {
     section: 'flow',
     flowStep: 3,
     category,
-    options: [],
     symptom,
     condition: result.condition,
     advice: result.advice,
     reply: null,
     manualResult: null,
-    manualError: null,
     user: req.user
   });
 });

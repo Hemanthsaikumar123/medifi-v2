@@ -60,3 +60,15 @@ document.querySelectorAll('.manual-form, .chat-form').forEach(form => {
     }
   });
 });
+
+// ── Expandable other-match cards ────────────────────────────────
+function toggleMatch(btn) {
+  const card   = btn.closest('.other-match-card');
+  const detail = card.querySelector('.match-detail');
+  const chev   = btn.querySelector('.match-chevron');
+  const open   = detail.style.display === 'none';
+
+  detail.style.display = open ? 'block' : 'none';
+  chev.style.transform  = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  btn.style.background  = open ? 'var(--bg-hover)' : 'var(--bg-subtle)';
+}
